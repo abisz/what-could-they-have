@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Do They Have? - MTG Instant Speed Training</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .mana-display {
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .mana-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .mana-symbols {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .mana-symbol {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .mana-w { background-image: url('./assets/W.png'); }
+        .mana-u { background-image: url('./assets/U.png'); }
+        .mana-b { background-image: url('./assets/B.png'); }
+        .mana-r { background-image: url('./assets/R.png'); }
+        .mana-g { background-image: url('./assets/G.png'); }
+
+        .game-section {
+            margin-bottom: 30px;
+        }
+
+        .game-section h2 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .answer-count {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .hint {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            color: #1976d2;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hint.hidden {
+            display: none;
+        }
+
+        .btn-show-hint {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .btn-show-hint:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+        }
+
+        .card-input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #cardInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        #cardInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-add {
+            background: #667eea;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-add:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-submit {
+            background: #10b981;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-submit:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-give-up {
+            background: #f97316;
+            color: white;
+        }
+
+        .btn-give-up:hover {
+            background: #ea580c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-play-again {
+            background: #667eea;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-play-again:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .cards-list {
+            background: #f9fafb;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            min-height: 40px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .card-item {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .card-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-remove {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .card-remove:hover {
+            background: #dc2626;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results-section {
+            margin-bottom: 20px;
+        }
+
+        .results-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .results-correct {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .results-missed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .result-item {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: white;
+            border-radius: 4px;
+            font-size: 14px;
+            border-left: 4px solid;
+        }
+
+        .result-correct {
+            border-left-color: #10b981;
+        }
+
+        .result-missed {
+            border-left-color: #ef4444;
+        }
+
+        .score-display {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .score-display .score {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .score-display .score-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .autocomplete-container {
+            position: relative;
+            flex: 1;
+        }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .autocomplete-suggestions.show {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .suggestion-item:hover,
+        .suggestion-item.selected {
+            background-color: #f0f4ff;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .card-preview {
+            position: fixed;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s, top 0.1s, left 0.1s;
+            z-index: 2147483647;
+        }
+
+        .card-preview.show {
+            opacity: 1;
+        }
+
+        .card-preview-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 2147483646;
+            pointer-events: none;
+        }
+
+        .card-preview img {
+            width: 200px;
+            height: auto;
+            border-radius: 6px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="cardPreviewLayer" class="card-preview-layer"></div>
+    <div class="container">
+        <h1>What Do They Have?</h1>
+        <p class="subtitle">Learn instant-speed cards by mana cost</p>
+
+        <div id="loading" class="loading">Loading cards...</div>
+
+        <div id="gameArea" style="display: none;">
+            <!-- Mana Display -->
+            <div class="mana-display">
+                <div class="mana-label">Available Mana</div>
+                <div class="mana-symbols" id="manaDisplay"></div>
+            </div>
+
+            <!-- Game Section -->
+            <div class="game-section">
+                <h2>Your Answer</h2>
+                <div class="answer-count" id="answerCount">0 answers entered</div>
+                <button class="btn-show-hint" onclick="toggleHint()">💡 Show Hint</button>
+                <div class="hint hidden" id="hint"></div>
+
+                <div class="cards-list" id="cardsList">
+                    <div class="empty-state">No cards entered yet</div>
+                </div>
+
+                <div class="card-input-area">
+                    <div class="autocomplete-container">
+                        <input
+                            type="text"
+                            id="cardInput"
+                            placeholder="Enter card name..."
+                            autocomplete="off"
+                        >
+                        <div class="autocomplete-suggestions" id="suggestions"></div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-add" onclick="addCard()">Add Card</button>
+                    <button class="btn-submit" onclick="submitAnswers()">Done</button>
+                    <button class="btn-give-up" onclick="giveUp()">Give Up</button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsArea" class="results">
+                <div class="score-display">
+                    <div class="score" id="scoreValue">0/0</div>
+                    <div class="score-label">Correct Answers</div>
+                </div>
+
+                <div class="results-section">
+                    <h3 class="results-correct">✅ You Got Right</h3>
+                    <div id="correctResults"></div>
+                </div>
+
+                <div class="results-section">
+                    <h3 class="results-missed">❌ You Missed</h3>
+                    <div id="missedResults"></div>
+                </div>
+
+                <button class="btn-play-again" onclick="playAgain()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allCards = [];
+        let instantCards = [];
+        let currentManaRequirement = null;
+        let userCards = [];
+        let gameInProgress = true;
+        let suggestionIndex = -1;
+        let currentSuggestions = [];
+
+        // Add card-name-specific discounted costs here.
+        // Values should be the effective mana cost strings to check.
+        const DISCOUNTED_MANA_COSTS = {
+            'Depower': '{U}',
+            'Truck Toss': '{R}{R}',
+            'Visions of Villainy': '{1}{B}',
+            'Punishing Punch': '{G}',
+        };
+
+        // Color mappings
+        const colorMap = {
+            'W': 'White',
+            'U': 'Blue',
+            'B': 'Black',
+            'R': 'Red',
+            'G': 'Green'
+        };
+
+        // Initialize
+        async function init() {
+            try {
+                const response = await fetch('./data/cards.json');
+                const data = await response.json();
+                allCards = data.data;
+                instantCards = allCards.filter(card => {
+                    // Include Instant type cards
+                    if (card.type_line && card.type_line.includes('Instant')) {
+                        return true;
+                    }
+                    // Include cards with Flash keyword (instant speed)
+                    if (card.keywords && card.keywords.includes('Flash')) {
+                        return true;
+                    }
+                    return false;
+                });
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('gameArea').style.display = 'block';
+                newRound();
+            } catch (error) {
+                document.getElementById('loading').innerHTML = 'Error loading cards: ' + error.message;
+            }
+        }
+
+        // Generate random mana requirement
+        function generateRandomMana() {
+            const colors = ['W', 'U', 'B', 'R', 'G'];
+            const weightedCounts = [
+                { count: 1, weight: 28 },
+                { count: 2, weight: 26 },
+                { count: 3, weight: 20 },
+                { count: 4, weight: 14 },
+                { count: 5, weight: 8 },
+                { count: 6, weight: 4 },
+            ];
+
+            const totalWeight = weightedCounts.reduce((sum, option) => sum + option.weight, 0);
+            let roll = Math.random() * totalWeight;
+            let count = weightedCounts[0].count;
+
+            for (const option of weightedCounts) {
+                roll -= option.weight;
+                if (roll < 0) {
+                    count = option.count;
+                    break;
+                }
+            }
+
+            const mana = [];
+            for (let i = 0; i < count; i++) {
+                mana.push(colors[Math.floor(Math.random() * colors.length)]);
+            }
+            return mana;
+        }
+
+        // Display mana requirement
+        function displayManaRequirement(mana) {
+            const display = document.getElementById('manaDisplay');
+            display.innerHTML = mana.map(color => {
+                return `<div class="mana-symbol mana-${color.toLowerCase()}"></div>`;
+            }).join('');
+
+            const instantsAtCost = instantCards.filter(card =>
+                getEffectiveManaCost(card) && canCastSpell(mana, getEffectiveManaCost(card))
+            );
+
+            const hintEl = document.getElementById('hint');
+            hintEl.textContent = `💡 There are ${instantsAtCost.length} instant-speed card(s) you can cast with this mana.`;
+            hintEl.classList.add('hidden');
+        }
+
+        // Toggle hint visibility
+        function toggleHint() {
+            const hintEl = document.getElementById('hint');
+            hintEl.classList.toggle('hidden');
+            const button = document.querySelector('.btn-show-hint');
+            if (hintEl.classList.contains('hidden')) {
+                button.textContent = '💡 Show Hint';
+            } else {
+                button.textContent = '💡 Hide Hint';
+            }
+        }
+
+        // Parse mana cost string to array
+        function parseMana(manaCostStr) {
+            if (!manaCostStr) return [];
+            const regex = /\{([^}]+)\}/g;
+            const matches = [...manaCostStr.matchAll(regex)];
+            return matches.map(m => m[1]);
+        }
+
+        function getBaseManaCost(card) {
+            if (card.mana_cost) {
+                return card.mana_cost;
+            }
+
+            if (card.card_faces && card.card_faces.length > 0) {
+                return card.card_faces[0].mana_cost || '';
+            }
+
+            return '';
+        }
+
+        function getEffectiveManaCost(card) {
+            return DISCOUNTED_MANA_COSTS[card.name] || getBaseManaCost(card);
+        }
+
+        function isColorSymbol(symbol) {
+            return symbol === 'W' || symbol === 'U' || symbol === 'B' || symbol === 'R' || symbol === 'G';
+        }
+
+        function canPayMana(availableMana, coloredNeeded, genericNeeded) {
+            const availableCounts = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+
+            for (const color of availableMana) {
+                if (isColorSymbol(color)) {
+                    availableCounts[color]++;
+                }
+            }
+
+            for (const color of ['W', 'U', 'B', 'R', 'G']) {
+                if (availableCounts[color] < coloredNeeded[color]) {
+                    return false;
+                }
+            }
+
+            let remaining = 0;
+            for (const color of ['W', 'U', 'B', 'R', 'G']) {
+                remaining += availableCounts[color] - coloredNeeded[color];
+            }
+
+            return remaining >= genericNeeded;
+        }
+
+        function addManaCounts(baseCounts, extraCounts) {
+            return {
+                W: baseCounts.W + extraCounts.W,
+                U: baseCounts.U + extraCounts.U,
+                B: baseCounts.B + extraCounts.B,
+                R: baseCounts.R + extraCounts.R,
+                G: baseCounts.G + extraCounts.G,
+            };
+        }
+
+        // Check if available mana can cast a spell
+        function canCastSpell(availableMana, manaCostStr) {
+            const costs = parseMana(manaCostStr);
+            const coloredNeeded = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+            let genericNeeded = 0;
+            const hybridChoices = [];
+
+            for (const cost of costs) {
+                if (isColorSymbol(cost)) {
+                    coloredNeeded[cost]++;
+                } else if (cost === 'X') {
+                    // Variable costs are outside the scope of this trainer.
+                    return false;
+                } else if (cost.includes('/')) {
+                    const parts = cost.split('/');
+                    const numericPart = parts.find(part => /^\d+$/.test(part));
+                    const colorParts = parts.filter(isColorSymbol);
+
+                    if (numericPart && colorParts.length === 1) {
+                        hybridChoices.push([
+                            { generic: parseInt(numericPart, 10) },
+                            { color: colorParts[0] },
+                        ]);
+                    } else if (!numericPart && colorParts.length >= 2) {
+                        hybridChoices.push(colorParts.map(color => ({ color })));
+                    } else {
+                        // Unsupported symbols like phyrexian mana or malformed costs fail closed.
+                        return false;
+                    }
+                } else {
+                    const generic = parseInt(cost, 10);
+                    if (Number.isNaN(generic)) {
+                        return false;
+                    }
+                    genericNeeded += generic;
+                }
+            }
+
+            function searchHybrid(index, chosenColored, chosenGeneric) {
+                if (index >= hybridChoices.length) {
+                    return canPayMana(
+                        availableMana,
+                        addManaCounts(coloredNeeded, chosenColored),
+                        genericNeeded + chosenGeneric
+                    );
+                }
+
+                for (const option of hybridChoices[index]) {
+                    if (option.color) {
+                        chosenColored[option.color]++;
+                        const ok = searchHybrid(index + 1, chosenColored, chosenGeneric);
+                        chosenColored[option.color]--;
+                        if (ok) return true;
+                    } else {
+                        const ok = searchHybrid(index + 1, chosenColored, chosenGeneric + option.generic);
+                        if (ok) return true;
+                    }
+                }
+
+                return false;
+            }
+
+            if (hybridChoices.length === 0) {
+                return canPayMana(availableMana, coloredNeeded, genericNeeded);
+            }
+
+            return searchHybrid(0, { W: 0, U: 0, B: 0, R: 0, G: 0 }, 0);
+        }
+
+        // Start new round
+        function newRound() {
+            userCards = [];
+            currentManaRequirement = generateRandomMana();
+            displayManaRequirement(currentManaRequirement);
+            updateCardsList();
+            hideCardPreview();
+            document.getElementById('resultsArea').classList.remove('show');
+            document.getElementById('cardInput').value = '';
+            hideSuggestions();
+            document.getElementById('cardInput').focus();
+            gameInProgress = true;
+        }
+
+        // Add card to user's list
+        function addCard() {
+            const input = document.getElementById('cardInput');
+            const cardName = input.value.trim();
+
+            if (!cardName) {
+                alert('Please enter a card name');
+                return;
+            }
+
+            const matchedCard = findCardByName(cardName);
+            if (!matchedCard) {
+                alert('Please enter a valid card name from the set');
+                input.focus();
+                return;
+            }
+
+            if (isAlreadyEnteredCard(matchedCard.name)) {
+                alert('That card is already in your answer list');
+                input.focus();
+                return;
+            }
+
+            userCards.unshift(matchedCard.name);
+            input.value = '';
+            hideSuggestions();
+            updateCardsList();
+            document.getElementById('cardsList').scrollTop = 0;
+            input.focus();
+        }
+
+        // Update cards list display
+        function updateCardsList() {
+            const list = document.getElementById('cardsList');
+            const count = document.getElementById('answerCount');
+            count.textContent = `${userCards.length} ${userCards.length === 1 ? 'answer' : 'answers'} entered`;
+
+            if (userCards.length === 0) {
+                list.innerHTML = '<div class="empty-state">No cards entered yet</div>';
+                return;
+            }
+
+            list.innerHTML = userCards.map((card, idx) => {
+                return `
+                    <div class="card-item">
+                        <span class="card-name">${card}</span>
+                        <button class="card-remove" onclick="removeCard(${idx})">Remove</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Remove card from list
+        function removeCard(idx) {
+            userCards.splice(idx, 1);
+            updateCardsList();
+        }
+
+        // Normalize card name for comparison
+        function normalizeCardName(name) {
+            return name.toLowerCase().trim().replace(/[^\w\s'-]/g, '').replace(/\s+/g, ' ');
+        }
+
+        function isAlreadyEnteredCard(name) {
+            const normalized = normalizeCardName(name);
+            return userCards.some(card => normalizeCardName(card) === normalized);
+        }
+
+        // Find card by normalized name
+        function findCardByName(name) {
+            const normalized = normalizeCardName(name);
+            return instantCards.find(card => normalizeCardName(card.name) === normalized);
+        }
+
+        // Show card preview on hover
+        function showCardPreview(element) {
+            let imageUrl = element.getAttribute('data-image');
+
+            // If element is not the card-name span, try to find it
+            if (!imageUrl) {
+                const cardNameSpan = element.querySelector('.card-name');
+                imageUrl = cardNameSpan?.getAttribute('data-image');
+            }
+
+            if (!imageUrl) return;
+
+            // Remove existing preview if any
+            hideCardPreview();
+
+            // Create preview element
+            const preview = document.createElement('div');
+            preview.className = 'card-preview show';
+            preview.innerHTML = `<img src="${imageUrl}" alt="Card preview">`;
+
+            const layer = document.getElementById('cardPreviewLayer');
+            layer.appendChild(preview);
+
+            const rect = element.getBoundingClientRect();
+            const previewRect = preview.getBoundingClientRect();
+            const gap = 12;
+            let top = rect.top - previewRect.height - gap;
+            if (top < 8) top = rect.bottom + gap;
+
+            let left = rect.left + rect.width / 2;
+            const halfWidth = previewRect.width / 2;
+            left = Math.max(8 + halfWidth, Math.min(window.innerWidth - 8 - halfWidth, left));
+
+            preview.style.top = `${Math.round(top)}px`;
+            preview.style.left = `${Math.round(left)}px`;
+            preview.style.transform = 'translateX(-50%)';
+        }
+
+        // Hide card preview
+        function hideCardPreview() {
+            const preview = document.querySelector('#cardPreviewLayer .card-preview.show');
+            if (preview) {
+                preview.remove();
+            }
+        }
+
+        // Submit answers
+        function submitAnswers() {
+            const correctCards = instantCards.filter(card =>
+                getEffectiveManaCost(card) && canCastSpell(currentManaRequirement, getEffectiveManaCost(card))
+            );
+
+            const userNormalized = userCards.map(normalizeCardName);
+            const correctMatches = [];
+            const missed = [...correctCards];
+
+            // Find correct matches
+            for (let i = 0; i < userNormalized.length; i++) {
+                const match = missed.findIndex(card =>
+                    normalizeCardName(card.name) === userNormalized[i]
+                );
+                if (match !== -1) {
+                    correctMatches.push(missed[match].name);
+                    missed.splice(match, 1);
+                }
+            }
+
+            showResults(correctMatches, missed);
+            gameInProgress = false;
+        }
+
+        // Show results
+        function showResults(correct, missed) {
+            const resultsArea = document.getElementById('resultsArea');
+            const correctList = document.getElementById('correctResults');
+            const missedList = document.getElementById('missedResults');
+            const scoreValue = document.getElementById('scoreValue');
+
+            // Populate correct answers
+            if (correct.length > 0) {
+                correctList.innerHTML = correct.map(cardName => {
+                    const cardData = findCardByName(cardName);
+                    const imageUrl = cardData?.image_uris?.normal || '';
+                    return `
+                        <div class="result-item result-correct" onmouseenter="showCardPreview(this)" onmouseleave="hideCardPreview()">
+                            <span class="card-name" data-image="${imageUrl}">✓ ${cardName}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                correctList.innerHTML = '<div class="empty-state">None</div>';
+            }
+
+            // Populate missed answers
+            if (missed.length > 0) {
+                missedList.innerHTML = missed.map(card => {
+                    const imageUrl = card.image_uris?.normal || '';
+                    return `
+                        <div class="result-item result-missed" onmouseenter="showCardPreview(this)" onmouseleave="hideCardPreview()">
+                            <span class="card-name" data-image="${imageUrl}">✗ ${card.name}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                missedList.innerHTML = '<div class="empty-state">None - Perfect!</div>';
+            }
+
+            scoreValue.textContent = `${correct.length}/${correct.length + missed.length}`;
+            resultsArea.classList.add('show');
+        }
+
+        // Give up
+        function giveUp() {
+            const correctCards = instantCards.filter(card =>
+                getEffectiveManaCost(card) && canCastSpell(currentManaRequirement, getEffectiveManaCost(card))
+            );
+            showResults([], correctCards);
+            gameInProgress = false;
+        }
+
+        // Play again
+        function playAgain() {
+            newRound();
+        }
+
+        // Get matching cards for autocomplete
+        function getMatchingCards(query) {
+            if (!query || query.length < 1) return [];
+
+            const normalized = query.toLowerCase().trim();
+            return instantCards.filter(card =>
+                card.name.toLowerCase().includes(normalized) &&
+                !isAlreadyEnteredCard(card.name)
+            ).slice(0, 10); // Limit to 10 suggestions
+        }
+
+        // Show suggestions
+        function showSuggestions(query) {
+            currentSuggestions = getMatchingCards(query);
+            suggestionIndex = -1;
+            const suggestionsDiv = document.getElementById('suggestions');
+
+            if (currentSuggestions.length === 0) {
+                suggestionsDiv.classList.remove('show');
+                return;
+            }
+
+            suggestionsDiv.innerHTML = currentSuggestions.map((card, idx) => `
+                <div class="suggestion-item" data-index="${idx}" onclick="selectSuggestion(${idx})">
+                    ${highlightMatch(card.name, query)}
+                </div>
+            `).join('');
+
+            suggestionsDiv.classList.add('show');
+        }
+
+        // Highlight the matching part
+        function highlightMatch(cardName, query) {
+            const normalized = query.toLowerCase().trim();
+            const index = cardName.toLowerCase().indexOf(normalized);
+            if (index === -1) return cardName;
+
+            const before = cardName.substring(0, index);
+            const match = cardName.substring(index, index + normalized.length);
+            const after = cardName.substring(index + normalized.length);
+
+            return `${before}<strong>${match}</strong>${after}`;
+        }
+
+        // Hide suggestions
+        function hideSuggestions() {
+            document.getElementById('suggestions').classList.remove('show');
+            suggestionIndex = -1;
+        }
+
+        // Select a suggestion
+        function selectSuggestion(index) {
+            if (index >= 0 && index < currentSuggestions.length) {
+                document.getElementById('cardInput').value = currentSuggestions[index].name;
+                hideSuggestions();
+                document.getElementById('cardInput').focus();
+            }
+        }
+
+        // Handle input events
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('cardInput');
+
+            input.addEventListener('input', (e) => {
+                showSuggestions(e.target.value);
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (!document.getElementById('suggestions').classList.contains('show')) {
+                    if (e.key === 'Enter') addCard();
+                    return;
+                }
+
+                switch(e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        suggestionIndex = Math.min(suggestionIndex + 1, currentSuggestions.length - 1);
+                        updateSelection();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        suggestionIndex = Math.max(suggestionIndex - 1, -1);
+                        updateSelection();
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        if (suggestionIndex >= 0) {
+                            selectSuggestion(suggestionIndex);
+                        } else {
+                            hideSuggestions();
+                            addCard();
+                        }
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        hideSuggestions();
+                        break;
+                }
+            });
+
+            input.addEventListener('blur', () => {
+                setTimeout(() => hideSuggestions(), 200);
+            });
+        });
+
+        // Update visual selection
+        function updateSelection() {
+            const items = document.querySelectorAll('.suggestion-item');
+            items.forEach((item, idx) => {
+                item.classList.toggle('selected', idx === suggestionIndex);
+                if (idx === suggestionIndex) {
+                    item.scrollIntoView({ block: 'nearest' });
+                }
+            });
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
