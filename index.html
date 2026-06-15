@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>What Do They Have? - MTG Instant Speed Training</title>
+    <title>What Could They Have? - MTG Instant Speed Training</title>
     <style>
         * {
             margin: 0;
@@ -106,6 +106,22 @@
             color: #666;
             font-size: 14px;
             margin-bottom: 12px;
+        }
+
+        .bonus-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            color: #444;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .bonus-toggle input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
         }
 
         .hint {
@@ -426,7 +442,7 @@
 <body>
     <div id="cardPreviewLayer" class="card-preview-layer"></div>
     <div class="container">
-        <h1>What Do They Have?</h1>
+        <h1>What Could They Have?</h1>
         <p class="subtitle">Learn instant-speed cards by mana cost</p>
 
         <div id="loading" class="loading">Loading cards...</div>
@@ -442,6 +458,10 @@
             <div class="game-section">
                 <h2>Your Answer</h2>
                 <div class="answer-count" id="answerCount">0 answers entered</div>
+                <label class="bonus-toggle" for="includeBonusCards">
+                    <input type="checkbox" id="includeBonusCards">
+                    Include bonus sheet cards
+                </label>
                 <button class="btn-show-hint" onclick="toggleHint()">💡 Show Hint</button>
                 <div class="hint hidden" id="hint"></div>
 
@@ -455,6 +475,7 @@
                             type="text"
                             id="cardInput"
                             placeholder="Enter card name..."
+                            aria-label="Enter card name"
                             autocomplete="off"
                         >
                         <div class="autocomplete-suggestions" id="suggestions"></div>
@@ -493,6 +514,9 @@
     <script>
         let allCards = [];
         let instantCards = [];
+        let bonusCards = [];
+        let bonusInstantCards = [];
+        let activeInstantCards = [];
         let currentManaRequirement = null;
         let userCards = [];
         let gameInProgress = true;
@@ -517,23 +541,59 @@
             'G': 'Green'
         };
 
+        function toInstantSpeedCards(cards) {
+            return cards.filter(card => {
+                if (card.type_line && card.type_line.includes('Instant')) {
+                    return true;
+                }
+                if (card.keywords && card.keywords.includes('Flash')) {
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        function getActiveCardPool() {
+            return activeInstantCards;
+        }
+
+        function isBonusEnabled() {
+            return Boolean(document.getElementById('includeBonusCards')?.checked);
+        }
+
+        function refreshActiveCardPool() {
+            activeInstantCards = isBonusEnabled()
+                ? [...instantCards, ...bonusInstantCards]
+                : [...instantCards];
+        }
+
+        function handleBonusToggleChange() {
+            refreshActiveCardPool();
+            newRound();
+        }
+
         // Initialize
         async function init() {
             try {
-                const response = await fetch('./data/cards.json');
-                const data = await response.json();
-                allCards = data.data;
-                instantCards = allCards.filter(card => {
-                    // Include Instant type cards
-                    if (card.type_line && card.type_line.includes('Instant')) {
-                        return true;
-                    }
-                    // Include cards with Flash keyword (instant speed)
-                    if (card.keywords && card.keywords.includes('Flash')) {
-                        return true;
-                    }
-                    return false;
-                });
+                const [mainResponse, bonusResponse] = await Promise.all([
+                    fetch('./data/cards.json'),
+                    fetch('./data/bonus.json'),
+                ]);
+
+                if (!mainResponse.ok || !bonusResponse.ok) {
+                    throw new Error('Unable to load card data.');
+                }
+
+                const mainData = await mainResponse.json();
+                const bonusData = await bonusResponse.json();
+
+                allCards = mainData.data;
+                instantCards = toInstantSpeedCards(allCards);
+                bonusCards = bonusData.data;
+                bonusInstantCards = toInstantSpeedCards(bonusCards);
+                refreshActiveCardPool();
+
+                document.getElementById('includeBonusCards').addEventListener('change', handleBonusToggleChange);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('gameArea').style.display = 'block';
                 newRound();
@@ -580,7 +640,7 @@
                 return `<div class="mana-symbol mana-${color.toLowerCase()}"></div>`;
             }).join('');
 
-            const instantsAtCost = instantCards.filter(card =>
+            const instantsAtCost = getActiveCardPool().filter(card =>
                 getEffectiveManaCost(card) && canCastSpell(mana, getEffectiveManaCost(card))
             );
 
@@ -757,7 +817,9 @@
 
             const matchedCard = findCardByName(cardName);
             if (!matchedCard) {
-                alert('Please enter a valid card name from the set');
+                alert(isBonusEnabled()
+                    ? 'Please enter a valid card name from the main set or bonus sheet'
+                    : 'Please enter a valid card name from the main set');
                 input.focus();
                 return;
             }
@@ -816,7 +878,7 @@
         // Find card by normalized name
         function findCardByName(name) {
             const normalized = normalizeCardName(name);
-            return instantCards.find(card => normalizeCardName(card.name) === normalized);
+            return getActiveCardPool().find(card => normalizeCardName(card.name) === normalized);
         }
 
         // Show card preview on hover
@@ -867,7 +929,7 @@
 
         // Submit answers
         function submitAnswers() {
-            const correctCards = instantCards.filter(card =>
+            const correctCards = getActiveCardPool().filter(card =>
                 getEffectiveManaCost(card) && canCastSpell(currentManaRequirement, getEffectiveManaCost(card))
             );
 
@@ -932,7 +994,7 @@
 
         // Give up
         function giveUp() {
-            const correctCards = instantCards.filter(card =>
+            const correctCards = getActiveCardPool().filter(card =>
                 getEffectiveManaCost(card) && canCastSpell(currentManaRequirement, getEffectiveManaCost(card))
             );
             showResults([], correctCards);
@@ -949,7 +1011,7 @@
             if (!query || query.length < 1) return [];
 
             const normalized = query.toLowerCase().trim();
-            return instantCards.filter(card =>
+            return getActiveCardPool().filter(card =>
                 card.name.toLowerCase().includes(normalized) &&
                 !isAlreadyEnteredCard(card.name)
             ).slice(0, 10); // Limit to 10 suggestions
