@@ -967,6 +967,18 @@
             gameInProgress = false;
         }
 
+        // Resolve a card's image to a local path (falls back to Scryfall URL if needed)
+        function getCardImageUrl(card, faceIndex = 0) {
+            if (!card) return '';
+            if (card.image_uris?.normal) {
+                return `./assets/cards/${card.id}.jpg`;
+            }
+            if (card.card_faces?.[faceIndex]?.image_uris?.normal) {
+                return `./assets/cards/${card.id}_${faceIndex}.jpg`;
+            }
+            return '';
+        }
+
         // Show results
         function showResults(correct, missed) {
             const resultsArea = document.getElementById('resultsArea');
@@ -978,7 +990,7 @@
             if (correct.length > 0) {
                 correctList.innerHTML = correct.map(cardName => {
                     const cardData = findCardByName(cardName);
-                    const imageUrl = cardData?.image_uris?.normal || '';
+                    const imageUrl = getCardImageUrl(cardData);
                     return `
                         <div class="result-item result-correct" onmouseenter="showCardPreview(this)" onmouseleave="hideCardPreview()">
                             <span class="card-name" data-image="${imageUrl}">✓ ${cardName}</span>
@@ -992,7 +1004,7 @@
             // Populate missed answers
             if (missed.length > 0) {
                 missedList.innerHTML = missed.map(card => {
-                    const imageUrl = card.image_uris?.normal || '';
+                    const imageUrl = getCardImageUrl(card);
                     return `
                         <div class="result-item result-missed" onmouseenter="showCardPreview(this)" onmouseleave="hideCardPreview()">
                             <span class="card-name" data-image="${imageUrl}">✗ ${card.name}</span>
