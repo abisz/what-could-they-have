@@ -54,6 +54,7 @@ Then navigate to `http://localhost:8000`
 - Filters only Instant-type cards
 - Shows all playable options for each mana combination
 
+
 ## Customization
 
 To adapt this to different card sets:

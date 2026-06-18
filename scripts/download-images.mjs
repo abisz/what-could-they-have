@@ -16,7 +16,8 @@ mkdirSync(OUT_DIR, { recursive: true });
 
 const mainData = JSON.parse(readFileSync(join(ROOT, 'data', 'cards.json'), 'utf8'));
 const bonusData = JSON.parse(readFileSync(join(ROOT, 'data', 'bonus.json'), 'utf8'));
-const allCards = [...mainData.data, ...bonusData.data];
+const landsData = JSON.parse(readFileSync(join(ROOT, 'data', 'lands.json'), 'utf8'));
+const allCards = [...mainData.data, ...bonusData.data, ...landsData.data];
 
 /**
  * Returns an array of { filename, url } objects for a card.

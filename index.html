@@ -98,24 +98,137 @@
         .game-section h2 {
             color: #333;
             font-size: 16px;
-            margin-bottom: 15px;
             font-weight: 600;
         }
 
-        .answer-count {
+        .game-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .answer-count-inline {
             color: #666;
-            font-size: 14px;
-            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-left: 6px;
         }
 
         .bonus-toggle {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 16px;
             color: #444;
             font-size: 14px;
             user-select: none;
+        }
+
+        .settings-menu-wrapper {
+            position: relative;
+        }
+
+        .settings-btn {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: 1px solid #d1d5db;
+            border-radius: 999px;
+            background: white;
+            color: #374151;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .settings-btn:hover {
+            background: #f3f4f6;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .settings-menu {
+            position: absolute;
+            top: 44px;
+            right: 0;
+            min-width: 240px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+            padding: 12px;
+            z-index: 10;
+        }
+
+        .settings-menu.hidden {
+            display: none;
+        }
+
+        .settings-menu .bonus-toggle {
+            margin: 0;
+        }
+
+        .mode-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-switcher .mode-btn {
+            background: #e5e7eb;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            min-width: 140px;
+        }
+
+        .mode-switcher .mode-btn:hover {
+            background: #d1d5db;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .mode-switcher .mode-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+        }
+
+        .land-sources {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .land-source-card {
+            width: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .land-source-card img {
+            width: 132px;
+            height: 186px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .land-source-placeholder {
+            width: 132px;
+            height: 186px;
+            border-radius: 6px;
+            border: 1px dashed #cbd5e1;
+            background: #f3f4f6;
+            color: #6b7280;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .bonus-toggle input {
@@ -458,6 +571,11 @@
         <div id="loading" class="loading">Loading cards...</div>
 
         <div id="gameArea" style="display: none;">
+            <div class="mode-switcher" role="group" aria-label="Display mode selector">
+                <button id="modeManaBtn" class="mode-btn" type="button" onclick="setDisplayMode('mana')">Mana Symbols</button>
+                <button id="modeLandsBtn" class="mode-btn" type="button" onclick="setDisplayMode('lands')">Lands</button>
+            </div>
+
             <!-- Mana Display -->
             <div class="mana-display">
                 <div class="mana-label">Available Mana</div>
@@ -466,12 +584,28 @@
 
             <!-- Game Section -->
             <div class="game-section">
-                <h2>Your Answer</h2>
-                <div class="answer-count" id="answerCount">0 answers entered</div>
-                <label class="bonus-toggle" for="includeBonusCards">
-                    <input type="checkbox" id="includeBonusCards">
-                    Include bonus sheet cards
-                </label>
+                <div class="game-section-header">
+                    <h2>Your Answer <span id="answerCountInline" class="answer-count-inline">(0 answers)</span></h2>
+                    <div id="settingsMenuWrapper" class="settings-menu-wrapper">
+                        <button
+                            id="settingsBtn"
+                            class="settings-btn"
+                            type="button"
+                            aria-label="Open settings"
+                            aria-expanded="false"
+                            aria-controls="settingsMenu"
+                            onclick="toggleSettingsMenu(event)"
+                        >
+                            ⚙
+                        </button>
+                        <div id="settingsMenu" class="settings-menu hidden" role="menu" aria-label="Settings">
+                            <label class="bonus-toggle" for="includeBonusCards">
+                                <input type="checkbox" id="includeBonusCards">
+                                Include bonus sheet cards
+                            </label>
+                        </div>
+                    </div>
+                </div>
                 <button class="btn-show-hint" onclick="toggleHint()">💡 Show Hint</button>
                 <div class="hint hidden" id="hint"></div>
 
@@ -495,7 +629,6 @@
                 <div class="button-group">
                     <button class="btn-add" onclick="addCard()">Add Card</button>
                     <button class="btn-submit" onclick="submitAnswers()">Done</button>
-                    <button class="btn-give-up" onclick="giveUp()">Give Up</button>
                 </div>
             </div>
 
@@ -532,11 +665,26 @@
         let bonusCards = [];
         let bonusInstantCards = [];
         let activeInstantCards = [];
+        let lands = [];
+        let landsByColor = {
+            W: { basic: [], nonbasic: [] },
+            U: { basic: [], nonbasic: [] },
+            B: { basic: [], nonbasic: [] },
+            R: { basic: [], nonbasic: [] },
+            G: { basic: [], nonbasic: [] },
+        };
         let currentManaRequirement = null;
+        let currentLandSources = [];
         let userCards = [];
         let gameInProgress = true;
         let suggestionIndex = -1;
         let currentSuggestions = [];
+        let currentDisplayMode = 'mana';
+
+        const DISPLAY_MODE_STORAGE_KEY = 'wcdth-display-mode';
+
+        // In land mode, prefer basics in most cases and sprinkle nonbasics occasionally.
+        const BASIC_LAND_BIAS = 0.9;
 
         // Add card-name-specific discounted costs here.
         // Values should be the effective mana cost strings to check.
@@ -587,30 +735,187 @@
             newRound();
         }
 
+        function isValidDisplayMode(mode) {
+            return mode === 'mana' || mode === 'lands';
+        }
+
+        function getDisplayMode() {
+            return currentDisplayMode;
+        }
+
+        function loadSavedDisplayMode() {
+            try {
+                const saved = localStorage.getItem(DISPLAY_MODE_STORAGE_KEY);
+                return isValidDisplayMode(saved) ? saved : 'mana';
+            } catch {
+                return 'mana';
+            }
+        }
+
+        function saveDisplayMode(mode) {
+            try {
+                localStorage.setItem(DISPLAY_MODE_STORAGE_KEY, mode);
+            } catch {
+                // Storage can be unavailable in private mode; fail silently.
+            }
+        }
+
+        function updateDisplayModeButtons() {
+            const manaBtn = document.getElementById('modeManaBtn');
+            const landsBtn = document.getElementById('modeLandsBtn');
+            if (!manaBtn || !landsBtn) return;
+
+            manaBtn.classList.toggle('active', currentDisplayMode === 'mana');
+            landsBtn.classList.toggle('active', currentDisplayMode === 'lands');
+        }
+
+        function setDisplayMode(mode, options = {}) {
+            const { reroll = true, persist = true } = options;
+            if (!isValidDisplayMode(mode)) return;
+
+            currentDisplayMode = mode;
+            updateDisplayModeButtons();
+
+            if (persist) {
+                saveDisplayMode(mode);
+            }
+
+            if (reroll) {
+                newRound();
+            }
+        }
+
+        function isSettingsMenuOpen() {
+            const menu = document.getElementById('settingsMenu');
+            return Boolean(menu && !menu.classList.contains('hidden'));
+        }
+
+        function closeSettingsMenu({ focusButton = false } = {}) {
+            const menu = document.getElementById('settingsMenu');
+            const button = document.getElementById('settingsBtn');
+            if (!menu || !button) return;
+
+            menu.classList.add('hidden');
+            button.setAttribute('aria-expanded', 'false');
+
+            if (focusButton) {
+                button.focus();
+            }
+        }
+
+        function toggleSettingsMenu(event) {
+            event?.stopPropagation();
+
+            const menu = document.getElementById('settingsMenu');
+            const button = document.getElementById('settingsBtn');
+            if (!menu || !button) return;
+
+            const nextOpen = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !nextOpen);
+            button.setAttribute('aria-expanded', String(nextOpen));
+        }
+
+        function isBasicLand(card) {
+            return Boolean(card?.type_line && card.type_line.includes('Basic Land'));
+        }
+
+        function getProducedColorSymbols(card) {
+            return [...new Set((card?.produced_mana || []).filter(isColorSymbol))];
+        }
+
+        function isSimpleDualLand(card) {
+            const producedMana = (card?.produced_mana || []).filter(Boolean);
+            if (producedMana.length === 0) return false;
+
+            // Dual-land training mode only accepts unconditional color outputs.
+            const hasOnlyColoredMana = producedMana.every(isColorSymbol);
+            const distinctColors = getProducedColorSymbols(card);
+            return hasOnlyColoredMana && distinctColors.length === 2;
+        }
+
+        function isEligibleTrainingLand(card) {
+            return isBasicLand(card) || isSimpleDualLand(card);
+        }
+
+        function buildLandsByColor(landCards) {
+            const byColor = {
+                W: { basic: [], nonbasic: [] },
+                U: { basic: [], nonbasic: [] },
+                B: { basic: [], nonbasic: [] },
+                R: { basic: [], nonbasic: [] },
+                G: { basic: [], nonbasic: [] },
+            };
+
+            for (const land of landCards) {
+                const bucket = isBasicLand(land) ? 'basic' : 'nonbasic';
+                for (const symbol of land.produced_mana || []) {
+                    if (byColor[symbol]) {
+                        byColor[symbol][bucket].push(land);
+                    }
+                }
+            }
+
+            return byColor;
+        }
+
+        function pickRandomLandForColor(color) {
+            const pools = landsByColor[color];
+            if (!pools) return null;
+
+            const { basic, nonbasic } = pools;
+            if (basic.length === 0 && nonbasic.length === 0) return null;
+
+            const shouldPickBasic = Math.random() < BASIC_LAND_BIAS;
+            const primary = shouldPickBasic ? basic : nonbasic;
+            const fallback = shouldPickBasic ? nonbasic : basic;
+            const chosenPool = primary.length > 0 ? primary : fallback;
+
+            return chosenPool[Math.floor(Math.random() * chosenPool.length)];
+        }
+
+        function getCastableCardsForCurrentRound() {
+            return getActiveCardPool().filter(card => {
+                const cost = getEffectiveManaCost(card);
+                if (!cost) return false;
+
+                if (getDisplayMode() === 'lands') {
+                    return canCastSpellWithLands(currentLandSources, cost);
+                }
+
+                return canCastSpell(currentManaRequirement, cost);
+            });
+        }
+
         // Initialize
         async function init() {
             try {
-                const [mainResponse, bonusResponse] = await Promise.all([
+                const [mainResponse, bonusResponse, landsResponse] = await Promise.all([
                     fetch('./data/cards.json'),
                     fetch('./data/bonus.json'),
+                    fetch('./data/lands.json'),
                 ]);
 
-                if (!mainResponse.ok || !bonusResponse.ok) {
+                if (!mainResponse.ok || !bonusResponse.ok || !landsResponse.ok) {
                     throw new Error('Unable to load card data.');
                 }
 
                 const mainData = await mainResponse.json();
                 const bonusData = await bonusResponse.json();
+                const landsData = await landsResponse.json();
 
                 allCards = mainData.data;
                 instantCards = toInstantSpeedCards(allCards);
                 bonusCards = bonusData.data;
                 bonusInstantCards = toInstantSpeedCards(bonusCards);
+                lands = (landsData.data || []).filter(isEligibleTrainingLand);
+                landsByColor = buildLandsByColor(lands);
                 refreshActiveCardPool();
+                setDisplayMode(loadSavedDisplayMode(), { reroll: false, persist: false });
 
                 document.getElementById('includeBonusCards').addEventListener('change', handleBonusToggleChange);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('gameArea').style.display = 'block';
+                updateDisplayModeButtons();
                 newRound();
             } catch (error) {
                 document.getElementById('loading').innerHTML = 'Error loading cards: ' + error.message;
@@ -651,13 +956,40 @@
         // Display mana requirement
         function displayManaRequirement(mana) {
             const display = document.getElementById('manaDisplay');
-            display.innerHTML = mana.map(color => {
-                return `<div class="mana-symbol mana-${color.toLowerCase()}"></div>`;
-            }).join('');
+            const label = document.querySelector('.mana-label');
 
-            const instantsAtCost = getActiveCardPool().filter(card =>
-                getEffectiveManaCost(card) && canCastSpell(mana, getEffectiveManaCost(card))
-            );
+            if (getDisplayMode() === 'lands') {
+                label.textContent = 'Available Lands';
+                currentLandSources = mana.map(color => pickRandomLandForColor(color));
+                display.innerHTML = `
+                    <div class="land-sources">
+                        ${currentLandSources.map((land, idx) => {
+                            const color = mana[idx];
+                            if (!land) {
+                                return `
+                                    <div class="land-source-card">
+                                        <div class="land-source-placeholder">No land</div>
+                                    </div>
+                                `;
+                            }
+
+                            return `
+                                <div class="land-source-card">
+                                    <img src="${getCardImageUrl(land)}" alt="${land.name}">
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else {
+                label.textContent = 'Available Mana';
+                currentLandSources = [];
+                display.innerHTML = mana.map(color => {
+                    return `<div class="mana-symbol mana-${color.toLowerCase()}"></div>`;
+                }).join('');
+            }
+
+            const instantsAtCost = getCastableCardsForCurrentRound();
 
             const hintEl = document.getElementById('hint');
             hintEl.textContent = `💡 There are ${instantsAtCost.length} instant-speed card(s) you can cast with this mana.`;
@@ -706,10 +1038,13 @@
 
         function canPayMana(availableMana, coloredNeeded, genericNeeded) {
             const availableCounts = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+            let colorlessAvailable = 0;
 
             for (const color of availableMana) {
                 if (isColorSymbol(color)) {
                     availableCounts[color]++;
+                } else if (color === 'C') {
+                    colorlessAvailable++;
                 }
             }
 
@@ -724,7 +1059,45 @@
                 remaining += availableCounts[color] - coloredNeeded[color];
             }
 
+            remaining += colorlessAvailable;
+
             return remaining >= genericNeeded;
+        }
+
+        function canCastSpellWithLands(landCards, manaCostStr) {
+            if (!Array.isArray(landCards) || landCards.length === 0) {
+                return false;
+            }
+
+            const colorOptions = ['W', 'U', 'B', 'R', 'G', 'C'];
+            const optionsPerLand = landCards.map(land => {
+                const produced = (land?.produced_mana || []).filter(symbol => colorOptions.includes(symbol));
+                return [...new Set(produced)];
+            });
+
+            if (optionsPerLand.some(options => options.length === 0)) {
+                return false;
+            }
+
+            const chosenMana = [];
+
+            function search(index) {
+                if (index >= optionsPerLand.length) {
+                    return canCastSpell(chosenMana, manaCostStr);
+                }
+
+                for (const symbol of optionsPerLand[index]) {
+                    chosenMana.push(symbol);
+                    if (search(index + 1)) {
+                        return true;
+                    }
+                    chosenMana.pop();
+                }
+
+                return false;
+            }
+
+            return search(0);
         }
 
         function addManaCounts(baseCounts, extraCounts) {
@@ -856,8 +1229,8 @@
         // Update cards list display
         function updateCardsList() {
             const list = document.getElementById('cardsList');
-            const count = document.getElementById('answerCount');
-            count.textContent = `${userCards.length} ${userCards.length === 1 ? 'answer' : 'answers'} entered`;
+            const count = document.getElementById('answerCountInline');
+            count.textContent = `(${userCards.length} ${userCards.length === 1 ? 'answer' : 'answers'})`;
 
             if (userCards.length === 0) {
                 list.innerHTML = '<div class="empty-state">No cards entered yet</div>';
@@ -944,9 +1317,7 @@
 
         // Submit answers
         function submitAnswers() {
-            const correctCards = getActiveCardPool().filter(card =>
-                getEffectiveManaCost(card) && canCastSpell(currentManaRequirement, getEffectiveManaCost(card))
-            );
+            const correctCards = getCastableCardsForCurrentRound();
 
             const userNormalized = userCards.map(normalizeCardName);
             const correctMatches = [];
@@ -1019,14 +1390,6 @@
             resultsArea.classList.add('show');
         }
 
-        // Give up
-        function giveUp() {
-            const correctCards = getActiveCardPool().filter(card =>
-                getEffectiveManaCost(card) && canCastSpell(currentManaRequirement, getEffectiveManaCost(card))
-            );
-            showResults([], correctCards);
-            gameInProgress = false;
-        }
 
         // Play again
         function playAgain() {
@@ -1035,9 +1398,9 @@
 
         // Get matching cards for autocomplete
         function getMatchingCards(query) {
-            if (!query || query.length < 1) return [];
-
             const normalized = query.toLowerCase().trim();
+            if (!normalized || normalized.length < 3) return [];
+
             return getActiveCardPool().filter(card =>
                 card.name.toLowerCase().includes(normalized) &&
                 !isAlreadyEnteredCard(card.name)
@@ -1135,6 +1498,19 @@
 
             input.addEventListener('blur', () => {
                 setTimeout(() => hideSuggestions(), 200);
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!isSettingsMenuOpen()) return;
+
+                const wrapper = document.getElementById('settingsMenuWrapper');
+                if (!wrapper || wrapper.contains(event.target)) return;
+                closeSettingsMenu();
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key !== 'Escape' || !isSettingsMenuOpen()) return;
+                closeSettingsMenu({ focusButton: true });
             });
         });
 
